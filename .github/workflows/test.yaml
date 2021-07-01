@@ -38,17 +38,17 @@ jobs:
         python -m pip install --upgrade pip
         python -m pip install --upgrade setuptools
 
-    - name: Install mypy (compiled)
-      run: python -m pip install mypy${{ github.event.inputs.pypi-mypy }}
+    - name: Install mypy (interpreted)
+      run: python -m pip install mypy${{ github.event.inputs.pypi-mypy }} --no-binary mypy
   
-    - name: Build (and might crash)
+    - name: Build (and shouldn't crash)
       run: |
         python build.py
 
-    - name: Install mypy (interpreted)
+    - name: Install mypy (compiled)
       run: |
-        python -m pip install mypy --no-binary mypy${{ github.event.inputs.revision }} --force-reinstall
+        python -m pip install mypy${{ github.event.inputs.revision }} --force-reinstall
 
-    - name: Build (and shouldn't crash)
+    - name: Build (and might crash)
       run: |
         python build.py
