@@ -1,0 +1,54 @@
+name: Test
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      pypi-mypy:
+        description: MyPy version from PyPI to use (e.g. ==0.910)
+        default: ""
+        required: false
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, ubuntu-latest]
+        python-version: [3.5, 3.6, 3.7, 3.8, 3.9]
+        python-arch: [x86, x64]
+        
+        exclude:
+          - os: ubuntu-latest
+            python-arch: x86
+
+    steps:
+    - uses: actions/checkout@v2
+    
+    - name: Set up Python ${{ matrix.python-version }}-${{ matrix.python-arch }}
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python-version }}
+        architecture: ${{ matrix.python-arch }}
+        
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        python -m pip install --upgrade setuptools
+
+    - name: Install mypy (compiled)
+      run: python -m pip install mypy${{ github.event.inputs.pypi-mypy }}
+  
+    - name: Build (and might crash)
+      run: |
+        python build.py
+
+    - name: Install mypy (interpreted)
+      run: |
+        python -m pip install mypy --no-binary mypy${{ github.event.inputs.revision }} --force-reinstall
+
+    - name: Build (and shouldn't crash)
+      run: |
+        python build.py
